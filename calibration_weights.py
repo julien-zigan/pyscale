@@ -6,7 +6,7 @@ class WeightStone:
 
     def __init__(self, weight: int, lower_left_x, lower_left_y):
         self.__weight = weight
-        self.__sides = int(sqrt(weight)) * 15
+        self.__sides = sqrt(weight) * 15
         self.__pos_x1 = lower_left_x
         self.__pos_y1 = lower_left_y - self.__sides
         self.__pos_x2 = lower_left_x + self.__sides
@@ -18,6 +18,20 @@ class WeightStone:
         self.__label = None
 
     @property
+    def weight(self):
+        return self.__weight
+
+    @weight.setter
+    def weight(self, value):
+        self.__weight = value
+        self.__sides = sqrt(value) * 15
+        self.__pos_x1 = self.__canvas.coords(self.__handle)[0]
+        self.__pos_y1 = self.__canvas.coords(self.__handle)[1] - self.__sides
+        self.__pos_x2 = self.__canvas.coords(self.__handle)[2] + self.__sides
+        self.__pos_y2 = self.__canvas.coords(self.__handle)[3]
+        self.repaint()
+
+    @property
     def properties(self) -> tuple:
         return (self.__pos_x1, self.__pos_y1, self.__pos_x2, self.__pos_y2,
                 {'fill':self.__color})
@@ -26,10 +40,23 @@ class WeightStone:
     def label_properties(self) -> tuple:
         x = self.__pos_x1 + self.__sides / 2
         y = self.__pos_y1 + self.__sides / 2
-        text = f"{self.__weight} kg"
-        fill = 'white'
+        unit = ' kg' if self.__weight > 5 else ''
+        text = f"{self.__weight}{unit}"
+        fill = f'{'black' if type(self) != WeightStone else 'white'}'
         font = 'Arial 14'
         return x, y, {'text': text, 'fill': fill, 'font': font}
+
+    @property
+    def color(self) -> str:
+        return self.__color
+
+    @color.setter
+    def color(self, color):
+        self.__color = color
+
+    @property
+    def handle(self):
+        return self.__handle
 
     def draw_on(self, canvas: tk.Canvas):
         self.__canvas = canvas
@@ -37,8 +64,11 @@ class WeightStone:
         self.__label = canvas.create_text(*self.label_properties)
         self.__canvas.update()
 
-    def move(self, x, y):
+    def repaint(self):
+        self.__canvas.delete(self.__handle)
+        self.draw_on(self.__canvas)
 
+    def move(self, x, y):
         max_val = max([x, y], key=abs)
 
         for i in range(abs(max_val)):
@@ -69,10 +99,13 @@ class WeightStone:
              + f"{'on scale' if self.__in_use else 'available'}"
         return info
 
+class Merchandise(WeightStone):
+    def __init__(self):
+        super().__init__(1, 150, 600)
+        self.color = 'gold'
 
 
 class Application:
-
 
     def __init__(self):
         self.__window = tk.Tk()
@@ -97,10 +130,14 @@ class Application:
 '''##########################'''
 
 app = Application()
-stone = WeightStone(81, 100, 200)
+stone = WeightStone(3, 100, 200)
 stone.draw_on(app.canvas)
+merch = Merchandise()
+merch.draw_on(app.canvas)
 sleep(1)
 stone.move_to(1000, 800)
+print(type(merch))
+merch.weight = 81
 app.window.mainloop()
 
 

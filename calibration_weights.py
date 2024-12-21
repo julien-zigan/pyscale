@@ -2,6 +2,70 @@ from math import sqrt
 import tkinter as tk
 from time import sleep
 
+class Application:
+
+    def __init__(self):
+        self.__window = tk.Tk()
+        self.__window.title("Gewichtssteine")
+        self.__window.state('zoomed')
+        self.__canvas = tk.Canvas(self.__window, background='DarkSeaGreen2')
+        self.__canvas.pack(fill='both', expand=True)
+        self.__window.update()
+        self.__prompt = tk.Label(self.__canvas, text="Gewicht der Ware: ",
+                                 fg='black', font='helvetica', bg='DarkSeaGreen2')
+        self.__prompt.place(x=100, y=200)
+        self.__entry_var = tk.StringVar()
+        self.__merch_weigth = tk.Entry(self.__canvas, fg='black', font='helvetica',
+                                       bg='lightgreen', justify='center',
+                                       textvariable=self.__entry_var)
+        self.__merch_weigth.place(x=300, y=200)
+        self.__stones = []
+        self.__create_stones()
+        self.__paint_stones()
+
+        self.__window.mainloop()
+
+    @property
+    def window(self) -> tk.Tk:
+        return self.__window
+
+    @property
+    def canvas(self) -> tk.Canvas:
+        return self.__canvas
+
+    def __create_stones(self):
+        x_start = 900
+        y_start = 300
+
+        for i in range(5, -1, -1):
+            weight = 3**i
+            side = sqrt(weight )* 15
+            next_greater_side = sqrt(3**(i+1)) * 15
+
+            if i % 2 == 1:
+                x = x_start + next_greater_side - side
+                y = y_start
+                stone = WeightStone(weight, x, y)
+
+            else:
+                x = x_start
+                y = y_start - next_greater_side + side
+                stone = WeightStone(weight, x, y)
+
+            self.__stones.insert(0, stone)
+
+
+
+
+
+
+
+
+
+    def __paint_stones(self):
+        for item in self.__stones:
+            item.paint(self.__canvas)
+
 class WeightStone:
 
     def __init__(self, weight: int, lower_left_x, lower_left_y):
@@ -11,11 +75,12 @@ class WeightStone:
         self.__pos_y1 = lower_left_y - self.__sides
         self.__pos_x2 = lower_left_x + self.__sides
         self.__pos_y2 = lower_left_y
-        self.__in_use = False
+        self.__available = True
         self.__color = 'black'
         self.__handle = None
         self.__canvas = None
         self.__label = None
+
 
     @property
     def weight(self):
@@ -30,6 +95,10 @@ class WeightStone:
         self.__pos_x2 = self.__canvas.coords(self.__handle)[2] + self.__sides
         self.__pos_y2 = self.__canvas.coords(self.__handle)[3]
         self.repaint()
+
+    @property
+    def sides(self):
+        return self.__sides
 
     @property
     def properties(self) -> tuple:
@@ -58,15 +127,15 @@ class WeightStone:
     def handle(self):
         return self.__handle
 
-    def draw_on(self, canvas: tk.Canvas):
+    def paint(self, canvas: tk.Canvas):
         self.__canvas = canvas
-        self.__handle = canvas.create_rectangle(*self.properties)
-        self.__label = canvas.create_text(*self.label_properties)
+        self.__handle = self.__canvas.create_rectangle(*self.properties)
+        self.__label = self.__canvas.create_text(*self.label_properties)
         self.__canvas.update()
 
     def repaint(self):
         self.__canvas.delete(self.__handle)
-        self.draw_on(self.__canvas)
+        self.paint(self.__canvas)
 
     def move(self, x, y):
         max_val = max([x, y], key=abs)
@@ -91,13 +160,13 @@ class WeightStone:
         destination_y = int((y - current_position[1]) - self.__sides)
         self.move(destination_x, destination_y)
 
-
     def __str__(self):
         info = f"{self.__weight} kg Stone, " \
              + f"Position: ({self.__pos_x1}, {self.__pos_y1}, " \
              + f"{self.__pos_x2}, {self.__pos_y2}), " \
-             + f"{'on scale' if self.__in_use else 'available'}"
+             + f"{'available' if self.__available else 'on scale'}"
         return info
+
 
 class Merchandise(WeightStone):
     def __init__(self):
@@ -105,40 +174,12 @@ class Merchandise(WeightStone):
         self.color = 'gold'
 
 
-class Application:
 
-    def __init__(self):
-        self.__window = tk.Tk()
-        self.__window.title("Gewichtssteine")
-        self.__window.state('zoomed')
-        self.__canvas = tk.Canvas(self.__window, background='DarkSeaGreen2')
-        self.__canvas.pack(fill='both', expand=True)
-        self.__window.update()
-        self.__prompt = tk.Label(self.__canvas, text="Gewicht der Ware: ",
-                                 fg='black', font='helvetica', bg='DarkSeaGreen2')
-        self.__prompt.place(x=100, y=200)
-        self.__entry_var = tk.StringVar()
-
-    @property
-    def window(self) -> tk.Tk:
-        return self.__window
-
-    @property
-    def canvas(self) -> tk.Canvas:
-        return self.__canvas
-
-'''##########################'''
-
+'''############ TEST ##############'''
 app = Application()
-stone = WeightStone(3, 100, 200)
-stone.draw_on(app.canvas)
-merch = Merchandise()
-merch.draw_on(app.canvas)
-sleep(1)
-stone.move_to(1000, 800)
-print(type(merch))
-merch.weight = 81
-app.window.mainloop()
+
+
+
 
 
 

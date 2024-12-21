@@ -1,31 +1,45 @@
-from math import sqrt
 import tkinter as tk
+
+from math import sqrt
 from time import sleep
+
+
 
 class Application:
 
     def __init__(self):
         self.__x_start = 30
         self.__y_start = 50
+
         self.__window = tk.Tk()
         self.__window.title("Gewichtssteine")
         self.__window.state('zoomed')
+
         self.__canvas = tk.Canvas(self.__window, background='#a9d394')
         self.__canvas.pack(fill='both', expand=True)
-        self.__window.update()
+
         self.__prompt = tk.Label(self.__canvas, text="Gewicht der Ware: ",
                                  fg='black', font='helvetica', bg='#a9d394')
         self.__prompt.place(x=self.__x_start, y=self.__y_start)
+
         self.__entry_var = tk.StringVar()
+        self.__entry_var.set("1 kg")
+        self.__entry_var.trace_add("write", self.__set_merch)
+
         self.__merch_weigth = tk.Entry(self.__canvas, fg='black', font='helvetica',
                                        bg='lightgreen', justify='center',
                                        textvariable=self.__entry_var)
         self.__merch_weigth.place(x=self.__x_start + 200, y=self.__y_start)
-        self.__stones = []
-        self.__create_stones()
-        self.__paint_stones()
+
+        self.__stones = self.__create_stones()
+        self.__paint_all(self.__stones)
+
+        self.__lowest_y = self.__canvas.coords(self.__stones[0].handle)[3]
+        self.__merch = Merchandise(1, self.__x_start, self.__lowest_y)
+        self.__merch.paint(self.__canvas)
 
         self.__window.mainloop()
+
 
     @property
     def window(self) -> tk.Tk:
@@ -35,7 +49,9 @@ class Application:
     def canvas(self) -> tk.Canvas:
         return self.__canvas
 
+
     def __create_stones(self):
+        stones = []
         x_start = 500
         y_start = (self.__y_start + sqrt(3**5) * 15) + 172
 
@@ -54,11 +70,25 @@ class Application:
                 y = y_start - next_greater_side + side
                 stone = WeightStone(weight, x, y)
 
-            self.__stones.insert(0, stone)
+            stones.insert(0, stone)
 
-    def __paint_stones(self):
-        for item in self.__stones:
+        return stones
+
+
+    def __paint_all(self, collection):
+        for item in collection:
             item.paint(self.__canvas)
+
+    def __set_merch(self, *args):
+        weight = int(self.__entry_var.get().strip(' kg').strip())
+        self.__entry_var.set(str(weight) + ' kg')
+        self.__canvas.delete(self.__merch.label)
+        self.__canvas.delete(self.__merch.handle)
+        self.__merch = Merchandise(weight, self.__x_start, self.__lowest_y)
+        self.__merch.paint(self.__canvas)
+
+
+
 
 class WeightStone:
 
@@ -103,7 +133,7 @@ class WeightStone:
     def label_properties(self) -> tuple:
         x = self.__pos_x1 + self.__sides / 2
         y = self.__pos_y1 + self.__sides / 2
-        unit = ' kg' if self.__weight > 5 else ''
+        unit = ' kg' if self.__weight > 6 else ''
         text = f"{self.__weight}{unit}"
         fill = f'{'black' if type(self) != WeightStone else '#dadce0'}'
         font = 'Arial 14'
@@ -120,6 +150,10 @@ class WeightStone:
     @property
     def handle(self):
         return self.__handle
+
+    @property
+    def label(self):
+        return self.__label
 
     def paint(self, canvas: tk.Canvas):
         self.__canvas = canvas
@@ -163,14 +197,15 @@ class WeightStone:
 
 
 class Merchandise(WeightStone):
-    def __init__(self):
-        super().__init__(1, 150, 600)
+    def __init__(self, weight, x, y):
+        super().__init__(weight, x, y)
         self.color = 'gold'
 
 
 
 '''############ TEST ##############'''
 app = Application()
+
 
 
 

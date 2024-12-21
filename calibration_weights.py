@@ -10,11 +10,11 @@ class Application:
         self.__window = tk.Tk()
         self.__window.title("Gewichtssteine")
         self.__window.state('zoomed')
-        self.__canvas = tk.Canvas(self.__window, background='DarkSeaGreen2')
+        self.__canvas = tk.Canvas(self.__window, background='#a9d394')
         self.__canvas.pack(fill='both', expand=True)
         self.__window.update()
         self.__prompt = tk.Label(self.__canvas, text="Gewicht der Ware: ",
-                                 fg='black', font='helvetica', bg='DarkSeaGreen2')
+                                 fg='black', font='helvetica', bg='#a9d394')
         self.__prompt.place(x=self.__x_start, y=self.__y_start)
         self.__entry_var = tk.StringVar()
         self.__merch_weigth = tk.Entry(self.__canvas, fg='black', font='helvetica',
@@ -37,14 +37,14 @@ class Application:
 
     def __create_stones(self):
         x_start = 500
-        y_start = (self.__y_start + sqrt(3**5) * 15) + 80
+        y_start = (self.__y_start + sqrt(3**5) * 15) + 172
 
         for i in range(5, -1, -1):
             weight = 3**i
             side = sqrt(weight )* 15
             next_greater_side = sqrt(3**(i+1)) * 15
 
-            if i % 2 == 1:
+            if i % 2 == 0:
                 x = x_start + next_greater_side - side
                 y = y_start
                 stone = WeightStone(weight, x, y)
@@ -70,7 +70,7 @@ class WeightStone:
         self.__pos_x2 = lower_left_x + self.__sides
         self.__pos_y2 = lower_left_y
         self.__available = True
-        self.__color = 'black'
+        self.__color = '#333435'
         self.__handle = None
         self.__canvas = None
         self.__label = None
@@ -105,7 +105,7 @@ class WeightStone:
         y = self.__pos_y1 + self.__sides / 2
         unit = ' kg' if self.__weight > 5 else ''
         text = f"{self.__weight}{unit}"
-        fill = f'{'black' if type(self) != WeightStone else 'white'}'
+        fill = f'{'black' if type(self) != WeightStone else '#dadce0'}'
         font = 'Arial 14'
         return x, y, {'text': text, 'fill': fill, 'font': font}
 

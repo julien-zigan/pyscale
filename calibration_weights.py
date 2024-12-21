@@ -5,6 +5,8 @@ from time import sleep
 class Application:
 
     def __init__(self):
+        self.__x_start = 30
+        self.__y_start = 50
         self.__window = tk.Tk()
         self.__window.title("Gewichtssteine")
         self.__window.state('zoomed')
@@ -13,12 +15,12 @@ class Application:
         self.__window.update()
         self.__prompt = tk.Label(self.__canvas, text="Gewicht der Ware: ",
                                  fg='black', font='helvetica', bg='DarkSeaGreen2')
-        self.__prompt.place(x=100, y=200)
+        self.__prompt.place(x=self.__x_start, y=self.__y_start)
         self.__entry_var = tk.StringVar()
         self.__merch_weigth = tk.Entry(self.__canvas, fg='black', font='helvetica',
                                        bg='lightgreen', justify='center',
                                        textvariable=self.__entry_var)
-        self.__merch_weigth.place(x=300, y=200)
+        self.__merch_weigth.place(x=self.__x_start + 200, y=self.__y_start)
         self.__stones = []
         self.__create_stones()
         self.__paint_stones()
@@ -34,8 +36,8 @@ class Application:
         return self.__canvas
 
     def __create_stones(self):
-        x_start = 900
-        y_start = 300
+        x_start = 500
+        y_start = (self.__y_start + sqrt(3**5) * 15) + 80
 
         for i in range(5, -1, -1):
             weight = 3**i
@@ -53,14 +55,6 @@ class Application:
                 stone = WeightStone(weight, x, y)
 
             self.__stones.insert(0, stone)
-
-
-
-
-
-
-
-
 
     def __paint_stones(self):
         for item in self.__stones:

@@ -1,6 +1,5 @@
 import tkinter as tk
-
-from math import sqrt
+from math import sqrt, log
 from time import sleep
 
 
@@ -8,8 +7,8 @@ from time import sleep
 class Application:
 
     def __init__(self):
-        self.__x_start = 30
-        self.__y_start = 50
+        self.__x_start = 10
+        self.__y_start = 20
 
         self.__window = tk.Tk()
         self.__window.title("Gewichtssteine")
@@ -31,11 +30,14 @@ class Application:
                                        textvariable=self.__entry_var)
         self.__merch_weigth.place(x=self.__x_start + 200, y=self.__y_start)
 
+        self.__tarry_btn = tk.Button(self.__canvas, text="Wiegen", command=self.__tarry_out)
+        self.__tarry_btn.place(x=self.__x_start, y=self.__y_start +50)
+
         self.__stones = self.__create_stones()
         self.__paint_all(self.__stones)
 
         self.__lowest_y = self.__canvas.coords(self.__stones[0].handle)[3]
-        self.__merch = Merchandise(1, self.__x_start, self.__lowest_y)
+        self.__merch = Merchandise(1, self.__x_start + 230, self.__lowest_y / 2 + 10)
         self.__merch.paint(self.__canvas)
 
         self.__window.mainloop()
@@ -49,6 +51,9 @@ class Application:
     def canvas(self) -> tk.Canvas:
         return self.__canvas
 
+    @property
+    def current_merch_weigth(self):
+        return int(self.__entry_var.get().strip(' kg').strip())
 
     def __create_stones(self):
         stones = []
@@ -81,19 +86,55 @@ class Application:
 
     def __set_merch(self, *args):
         old_weight = self.__merch.weight
-        new_weight = int(self.__entry_var.get().strip(' kg').strip())
+        new_weight = self.current_merch_weigth
         self.__entry_var.set(str(new_weight) + ' kg')
         while old_weight != new_weight:
             difference = + 1 if old_weight < new_weight else -1
+            current_weight = old_weight + difference
+            offset = (sqrt(current_weight) * 15) / 2
             self.__canvas.delete(self.__merch.label)
             self.__canvas.delete(self.__merch.handle)
-            self.__merch = Merchandise(old_weight + difference, self.__x_start, self.__lowest_y)
+            self.__merch = Merchandise(current_weight, self.__x_start + 230 - offset, self.__lowest_y / 2 + offset )
             old_weight += difference
             self.__merch.paint(self.__canvas)
             factor = abs(old_weight - new_weight)
             sleep(0.2 / factor)
 
+    def __calculate_distribution(self, weight):
+        result = [[], []]
+        equation = weight
+        for i in range(0, 6):
+            b = 3 ** i
+            a = (equation / b) % 3
+            if a == 0: continue
+            if a == 1:
+                equation -= b
+                result[1].append(b)
+            if a == 2:
+                equation += b
+                result[0].append(b)
+            if equation == 0:
+                break
+        return result
 
+    def __tarry_out(self):
+        y = 750
+        placement = self.__calculate_distribution(self.current_merch_weigth)
+        self.__merch.move_to(20, y)
+        last_left = self.__canvas.coords(self.__merch.handle)[2]
+        for stone in placement[0]:
+            index = int(log(stone, 3))
+            if self.__stones[index].available:
+                self.__stones[index].move_to(last_left + 10, y)
+            self.__stones[index].available = False
+            last_left = self.__canvas.coords(self.__stones[index].handle)[2]
+
+        last_right = last_left + 150
+        for stone in placement[1]:
+            index = int(round(log(stone, 3)))
+            if self.__stones[index].available:
+                self.__stones[index].move_to(last_right + 10, y)
+            last_right = self.__canvas.coords(self.__stones[index].handle)[2]
 
 
 class WeightStone:
@@ -131,6 +172,14 @@ class WeightStone:
         return self.__sides
 
     @property
+    def x(self):
+        return self.__pos_x1
+
+    @property
+    def y(self):
+        return self.__pos_y2
+
+    @property
     def properties(self) -> tuple:
         return (self.__pos_x1, self.__pos_y1, self.__pos_x2, self.__pos_y2,
                 {'fill':self.__color})
@@ -160,6 +209,14 @@ class WeightStone:
     @property
     def label(self):
         return self.__label
+
+    @property
+    def available(self):
+        return self.__available
+
+    @available.setter
+    def available(self, value):
+        self.__available = value
 
     def paint(self, canvas: tk.Canvas):
         self.__canvas = canvas

@@ -80,12 +80,18 @@ class Application:
             item.paint(self.__canvas)
 
     def __set_merch(self, *args):
-        weight = int(self.__entry_var.get().strip(' kg').strip())
-        self.__entry_var.set(str(weight) + ' kg')
-        self.__canvas.delete(self.__merch.label)
-        self.__canvas.delete(self.__merch.handle)
-        self.__merch = Merchandise(weight, self.__x_start, self.__lowest_y)
-        self.__merch.paint(self.__canvas)
+        old_weight = self.__merch.weight
+        new_weight = int(self.__entry_var.get().strip(' kg').strip())
+        self.__entry_var.set(str(new_weight) + ' kg')
+        while old_weight != new_weight:
+            difference = + 1 if old_weight < new_weight else -1
+            self.__canvas.delete(self.__merch.label)
+            self.__canvas.delete(self.__merch.handle)
+            self.__merch = Merchandise(old_weight + difference, self.__x_start, self.__lowest_y)
+            old_weight += difference
+            self.__merch.paint(self.__canvas)
+            factor = abs(old_weight - new_weight)
+            sleep(0.2 / factor)
 
 
 

@@ -31,7 +31,10 @@ class Application:
         self.__merch_weigth.place(x=self.__x_start + 200, y=self.__y_start)
 
         self.__tarry_btn = tk.Button(self.__canvas, text="Wiegen", command=self.__tarry_out)
-        self.__tarry_btn.place(x=self.__x_start, y=self.__y_start +50)
+        self.__tarry_btn.place(x=self.__x_start + 100, y=self.__y_start +50)
+
+        self.__reset_btn = tk.Button(self.__canvas, text="Reset", command=self.__reset)
+        self.__reset_btn.place(x=self.__x_start + 250, y=self.__y_start + 50)
 
         self.__stones = self.__create_stones()
         self.__paint_all(self.__stones)
@@ -39,6 +42,8 @@ class Application:
         self.__lowest_y = self.__canvas.coords(self.__stones[0].handle)[3]
         self.__merch = Merchandise(1, self.__x_start + 230, self.__lowest_y / 2 + 10)
         self.__merch.paint(self.__canvas)
+
+        self.__equal_sign = None
 
         self.__window.mainloop()
 
@@ -122,19 +127,40 @@ class Application:
         placement = self.__calculate_distribution(self.current_merch_weigth)
         self.__merch.move_to(20, y)
         last_left = self.__canvas.coords(self.__merch.handle)[2]
+        self.__equal_sign = self.canvas.create_text(last_left + 75, y - 15, text="≠", fill="red", font="calibri 28")
+
         for stone in placement[0]:
             index = int(log(stone, 3))
             if self.__stones[index].available:
                 self.__stones[index].move_to(last_left + 10, y)
+
             self.__stones[index].available = False
             last_left = self.__canvas.coords(self.__stones[index].handle)[2]
+            self.canvas.delete(self.__equal_sign)
+            self.__equal_sign = self.canvas.create_text(last_left + 75, y - 15, text="≠", fill="red", font="calibri 28")
+
 
         last_right = last_left + 150
         for stone in placement[1]:
             index = int(round(log(stone, 3)))
             if self.__stones[index].available:
                 self.__stones[index].move_to(last_right + 10, y)
+            self.__stones[index].available = False
             last_right = self.__canvas.coords(self.__stones[index].handle)[2]
+        self.canvas.delete(self.__equal_sign)
+        self.__equal_sign = self.canvas.create_text(last_left + 75, y - 15, text="=", fill="green", font="calibri 28")
+
+
+    def __reset(self):
+        self.canvas.delete(self.__equal_sign)
+        self.__merch.move_to(self.__merch.x, self.__merch.y)
+
+        for stone in self.__stones:
+            if stone.available:
+                continue
+            stone.move_to(stone.x, stone.y)
+            stone.available = True
+
 
 
 class WeightStone:
